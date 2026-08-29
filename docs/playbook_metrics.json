@@ -1,0 +1,44 @@
+{
+  "coverage": {
+    "total_content": 519606,
+    "covered": 111247,
+    "coverage_pct": 0.21409875944465614
+  },
+  "reference_snapshot": {
+    "staleness_decline_rate": {
+      "updated_after_snapshot": 0.6622486054961363,
+      "0-90": 0.620958839299795,
+      "91-180": 0.7265538920215179,
+      "181+": 0.7891891891891892
+    },
+    "median_ctr_by_tier": {
+      "top_3": 0.6841505131128849,
+      "page_1": 0.32017075773745995,
+      "striking": 0.2070393374741201,
+      "page_3_5": 0.0,
+      "deep": 0.0
+    }
+  },
+  "week6_honest_comparison": {
+    "baseline": {
+      "precision": 0.735123,
+      "recall": 0.548398,
+      "f1": 0.628178
+    },
+    "logistic_regression_grouped": {
+      "precision": 0.668108,
+      "recall": 0.911104,
+      "f1": 0.770911
+    },
+    "random_forest_grouped": {
+      "precision": 0.705061,
+      "recall": 0.685136,
+      "f1": 0.694955
+    }
+  },
+  "action_distribution": {
+    "monitor": 56808,
+    "leave": 45351,
+    "refresh": 8928
+  }
+}
