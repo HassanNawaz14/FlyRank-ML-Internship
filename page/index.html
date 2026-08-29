@@ -1,1 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which SEO Signals Actually Predict Content Decline? — A Validated Study of 111K Pages</title>
+<meta name="description" content="A validated study of 111,247 content pages testing which pre-decline signals — staleness, click-through rate, position — actually predict search performance decline, with an honest model-vs-baseline comparison.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F6F4;
+    --surface: #FFFFFF;
+    --ink: #1B2430;
+    --muted: #5C6672;
+    --line: #DADFE3;
+    --amber: #B8752E;
+    --amber-soft: #F3E4D0;
+    --teal: #2C7A68;
+    --teal-soft: #DCEEE8;
+    --rust: #A34B3F;
+    --rust-soft: #F1DEDA;
+    --max-w: 780px;
+  }
 
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: 'IBM Plex Serif', serif;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    margin: 0 0 0.5em 0;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--amber); }
+
+  /* ---------- Layout shell ---------- */
+
+  .wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .wrap-wide {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 0;
+    background: rgba(245, 246, 244, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+    z-index: 10;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  nav.toc .toc-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: flex;
+    gap: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  nav.toc a {
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  nav.toc a:hover { color: var(--amber); }
+
+  section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  section:last-of-type { border-bottom: none; }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  p { margin: 0 0 1.1em 0; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ---------- Hero ---------- */
+
+  header.hero {
+    padding: 72px 0 56px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  header.hero h1 {
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+
+  .abstract {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 680px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .meta-row span strong { color: var(--ink); }
+
+  /* ---------- Signature: the gap chart ---------- */
+
+  .gap-chart-block {
+    margin-top: 44px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px 28px 20px 28px;
+  }
+
+  .gap-chart-block .chart-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 18px;
+  }
+
+  .gap-chart-caption {
+    margin-top: 14px;
+    font-size: 14.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  .gap-chart-caption strong { color: var(--rust); }
+
+  /* ---------- Badges (reason codes — the recurring motif) ---------- */
+
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 3px;
+    letter-spacing: 0.01em;
+  }
+
+  .badge-flag { background: var(--amber-soft); color: var(--amber); }
+  .badge-double { background: var(--rust-soft); color: var(--rust); }
+  .badge-safe { background: var(--teal-soft); color: var(--teal); }
+  .badge-neutral { background: #EAECEA; color: var(--muted); }
+
+  /* ---------- Tables ---------- */
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 15px;
+  }
+
+  caption {
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    caption-side: top;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  td.num, th.num { font-family: 'IBM Plex Mono', monospace; text-align: right; }
+
+  tr.highlight td { background: var(--teal-soft); }
+  tr.weak td { color: var(--muted); }
+
+  .table-note {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-top: -12px;
+  }
+
+  /* ---------- Callout / tension boxes ---------- */
+
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: var(--amber-soft);
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 15.5px;
+  }
+
+  .callout.teal { border-left-color: var(--teal); background: var(--teal-soft); }
+  .callout.rust { border-left-color: var(--rust); background: var(--rust-soft); }
+
+  .callout strong { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+
+  /* ---------- Figures ---------- */
+
+  figure {
+    margin: 28px 0;
+  }
+
+  figure img {
+    width: 100%;
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+
+  figcaption {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- Recommendation cards ---------- */
+
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+  }
+
+  .rec-card .rec-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .rec-card .action {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .rec-card p { font-size: 14.5px; color: var(--muted); margin: 0; }
+
+  /* ---------- No-go list ---------- */
+
+  .nogo-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+  }
+
+  .nogo-list li {
+    padding: 12px 0 12px 28px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    font-size: 15px;
+  }
+
+  .nogo-list li::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    color: var(--rust);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* ---------- Limitations list ---------- */
+
+  .limits-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .limits-list li {
+    padding-left: 20px;
+    border-left: 2px solid var(--line);
+    font-size: 15px;
+  }
+
+  .limits-list .limit-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    padding: 48px 0 80px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  footer .credit-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .repro-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 640px) {
+    header.hero h1 { font-size: 26px; }
+    .rec-grid { grid-template-columns: 1fr; }
+    table { font-size: 13.5px; }
+    th, td { padding: 8px 6px; }
+    section { padding: 44px 0; }
+  }
+
+  /* ---------- Print ---------- */
+
+  @media print {
+    nav.toc { display: none; }
+    body { background: white; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#intro">01 Problem</a>
+    <a href="#data">02 Data</a>
+    <a href="#method">03 Methodology</a>
+    <a href="#results">04 Results</a>
+    <a href="#limits">05 Limitations</a>
+    <a href="#recs">06 Recommendations</a>
+    <a href="#repro">07 Reproducibility</a>
+    <a href="#credit">08 Credit</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Applied Search Intelligence — FlyRank ML Internship Capstone</div>
+    <h1>Which SEO Signals Actually Predict Content Decline?</h1>
+    <p class="abstract">
+      I tested whether pre-decline signals — content staleness, click-through rate relative to
+      search position, and word count — actually predict which pages will lose search visibility,
+      using 111,247 real content pages from FlyRank's search-performance warehouse. A simple,
+      readable rule (stale content + weak click-through rate) held up better under honest testing
+      than a more complex model that looked stronger under a naive one. The result is a validated,
+      precision-led review queue that a content team can trust and act on, with its limits stated
+      plainly rather than discovered later.
+    </p>
+    <div class="meta-row">
+      <span>Lane: <strong>Ranking Signal Analysis</strong></span>
+      <span>Pages analyzed: <strong>111,247</strong></span>
+      <span>Coverage: <strong>21.4%</strong> of portfolio</span>
+      <span>Validation: <strong>client-grouped split</strong></span>
+    </div>
+
+    <div class="gap-chart-block">
+      <div class="chart-label">The finding that shaped this whole study — F1 score, Random Forest, by split design</div>
+      <svg viewBox="0 0 640 200" width="100%" height="200" role="img" aria-label="Bar chart showing Random Forest F1 score of 0.790 under a naive random split versus 0.695 under a client-grouped split">
+        <line x1="40" y1="20" x2="40" y2="160" stroke="#DADFE3" stroke-width="1"/>
+        <line x1="40" y1="160" x2="600" y2="160" stroke="#DADFE3" stroke-width="1"/>
+        <text x="10" y="24" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C6672">1.0</text>
+        <text x="10" y="94" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C6672">0.5</text>
+        <text x="18" y="164" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C6672">0</text>
+
+        <rect x="140" y="49" width="90" height="111" fill="#A34B3F" opacity="0.85"/>
+        <text x="185" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="#A34B3F">0.790</text>
+        <text x="185" y="178" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1B2430">Random split</text>
+        <text x="185" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C6672">looks strongest</text>
+
+        <rect x="360" y="76" width="90" height="84" fill="#2C7A68" opacity="0.9"/>
+        <text x="405" y="67" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="#2C7A68">0.695</text>
+        <text x="405" y="178" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1B2430">Client-grouped split</text>
+        <text x="405" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C6672">the honest number</text>
+      </svg>
+      <div class="gap-chart-caption">
+        Under a plain random split, Random Forest looked like the clear winner. Under an honest
+        split that never lets the same client appear in both train and test, its score dropped by
+        <strong>0.095</strong> — enough to flip it from best model to weakest. Full comparison in
+        <a href="#results">Results</a>.
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="intro">
+  <div class="wrap">
+    <div class="eyebrow">01 — Introduction / Problem</div>
+    <h2>A reviewer can't check every page. Something has to decide what gets checked first.</h2>
+    <p>
+      A content or SEO reviewer at a company managing thousands of pages cannot personally
+      re-read every page every month to catch decline early. They need a short, trustworthy list:
+      which pages are worth a look this week, and why. Get that list wrong in one direction and a
+      reviewer wastes time on pages that were never actually declining. Get it wrong in the other
+      direction and a real decline goes unnoticed until it's expensive to reverse.
+    </p>
+    <p>
+      FlyRank's own March 2026 research paper, <em>The State of AI-Driven SEO</em>, found across
+      341,701 pages that refresh timing is "one of the strongest measured levers available" —
+      refreshed 365+ day content showed a 3.2× health boost and 57× more impressions than
+      untouched pages of the same age. That finding motivates the question this study answers at
+      the individual-page level: <strong>which signals, measurable before a decline happens, are
+      actually associated with a page declining</strong> — and can a simple, explainable rule
+      built on those signals be trusted, or does it need a heavier model to hold up?
+    </p>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="eyebrow">02 — Data</div>
+    <h2>111,247 pages, three real signals, one honest label.</h2>
+    <p>
+      This study runs on FlyRank's pseudonymized search-performance warehouse — daily
+      Google Search Console metrics joined to content metadata across 104 clients and roughly
+      520,000 distinct content items. Every page in scope has at least 100 impressions in the
+      30 days prior to the analysis window, which brings the working set to <strong>111,247
+      pages — 21.4% of the full portfolio</strong>. That floor is deliberate: below it, click and
+      position metrics become too noisy to trust, but it means this study's findings apply to
+      pages with meaningful existing traffic, not the long tail of near-zero-impression content.
+    </p>
+
+    <table>
+      <caption>Time windows used</caption>
+      <thead><tr><th>Window</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">prev30</td><td>The 30 days used to build every feature — staleness, CTR, position, impressions</td></tr>
+        <tr><td class="mono">last30</td><td>The most recent 30 days, used only to compute the label — never seen by any model as a feature</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      <strong>The label:</strong> a page is marked declining when its impressions drop more than
+      20% from the <span class="mono">prev30</span> window to the <span class="mono">last30</span>
+      window. That threshold is stricter than FlyRank's own published paper, which uses a 10%
+      cutoff — checked directly against this dataset, the two definitions disagree on 6,563 pages
+      (5.9% of the working set), a reminder that "decline" is a modeling choice, not a fixed fact.
+    </p>
+
+    <div class="callout rust">
+      <strong>Excluded — direct leakage</strong>
+      <span class="mono">imp_last30</span>, <span class="mono">clk_last30</span>,
+      <span class="mono">pos_last30</span>, <span class="mono">trend_direction</span>,
+      <span class="mono">trend_pct</span> — every one of these falls inside the exact window used
+      to define the label. A correlation check against the label confirms why: these columns
+      correlate at −0.14 to +0.18, meaningfully higher than any legitimate pre-decline feature.
+    </div>
+
+    <div class="callout">
+      <strong>Excluded — window overlap risk</strong>
+      Query-level signals from the 90-day query table (<span class="mono">rare_share</span>,
+      <span class="mono">top_query_share</span>) were deliberately never used. That table's fixed
+      90-day window overlaps the label period with no way to split it into safe and unsafe parts,
+      so it was excluded entirely rather than used with an asterisk.
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="eyebrow">03 — Methodology</div>
+    <h2>A rule you can read, a model that has to beat it, and a split that can't lie.</h2>
+
+    <h3 style="font-size:19px; margin-top:8px;">The baseline: two signals, plainly combined</h3>
+    <p>
+      Before any model, a simple rule: flag a page when it has gone <span class="mono">90+</span>
+      days without an update, or when its click-through rate sits below the median for pages at
+      its search-position tier — whichever positive-median tier it belongs to. Two tiers,
+      <span class="badge badge-neutral">page_3_5</span> and <span class="badge badge-neutral">deep</span>,
+      have a median CTR of exactly zero, which would make "below median" impossible to trigger; a
+      page there is instead flagged weak-CTR only if it earns literally zero clicks. Each page
+      gets a reason code:
+    </p>
+    <p>
+      <span class="badge badge-double">STALE+WEAK_CTR</span>
+      <span class="badge badge-flag">STALE</span>
+      <span class="badge badge-flag">WEAK_CTR</span>
+      <span class="badge badge-safe">NONE</span>
+    </p>
+
+    <h3 style="font-size:19px; margin-top:32px;">The models</h3>
+    <p>
+      Two models were trained on the same pre-decline features (prior-window impressions, clicks,
+      position, CTR, staleness, word count, content type, intent): <strong>Logistic Regression</strong>,
+      chosen because its coefficients are directly readable — this study's whole purpose is
+      finding out which signals to trust, not just getting the highest score — and
+      <strong>Random Forest</strong> with permutation importance, as a nonlinear cross-check on
+      whether a different method agrees on what matters.
+    </p>
+
+    <h3 style="font-size:19px; margin-top:32px;">The split that mattered most</h3>
+    <p>
+      Pages from the same client tend to share templates and publishing habits. A plain random
+      80/20 split lets the model see near-duplicate patterns from the same client in both training
+      and testing — which makes a model look better than it actually is at handling a genuinely
+      new client. Every real result in this paper uses <span class="mono">GroupShuffleSplit</span>
+      on client ID instead, confirmed to produce zero client overlap between train and test. Section
+      04 shows exactly how much the naive version would have misled this study.
+    </p>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap-wide">
+    <div class="eyebrow">04 — Results</div>
+    <h2>The precise, explainable rule beat the flashier model where it counts.</h2>
+
+    <table>
+      <caption>Model vs. baseline — honest client-grouped split (test set only)</caption>
+      <thead>
+        <tr><th>Approach</th><th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th><th class="num">AUC-ROC</th></tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td>Baseline rule</td><td class="num">0.735</td><td class="num">0.548</td><td class="num">0.628</td><td class="num mono">—</td>
+        </tr>
+        <tr>
+          <td>Logistic Regression</td><td class="num">0.668</td><td class="num">0.911</td><td class="num">0.771</td><td class="num">0.548</td>
+        </tr>
+        <tr class="weak">
+          <td>Random Forest</td><td class="num">0.705</td><td class="num">0.685</td><td class="num">0.695</td><td class="num">0.600</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="table-note">AUC-ROC is not computed for the baseline — it outputs a hard flag, not a probability, so an AUC score for it would not be meaningful.</p>
+
+    <div class="callout">
+      <strong>Reading this table honestly</strong>
+      No single approach wins outright. The baseline rule is the most <em>precise</em> — when it
+      flags a page, it's right most often, which matters for a queue reviewers must trust
+      repeatedly. Logistic Regression catches the most true declines (highest recall and F1) but
+      at the cost of more false alarms. Random Forest, despite being the most complex model, is
+      the weakest of the three on the metric that matters here.
+    </div>
+
+    <h3 style="font-size:19px; margin-top:40px;">Why the split, not the model, was the real test</h3>
+    <table>
+      <caption>F1 score under a naive random split vs. the honest client-grouped split</caption>
+      <thead><tr><th>Model</th><th class="num">Random split (naive)</th><th class="num">Grouped split (honest)</th><th class="num">Inflation</th></tr></thead>
+      <tbody>
+        <tr><td>Logistic Regression</td><td class="num">0.781</td><td class="num">0.771</td><td class="num">+0.010</td></tr>
+        <tr><td>Random Forest</td><td class="num">0.790</td><td class="num">0.695</td><td class="num mono" style="color:var(--rust);">+0.095</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Under the naive split, Random Forest would have been reported as the best model in this
+      study — it out-scored Logistic Regression by nine points of F1. Under the split that
+      actually respects how this model would be used (scoring pages from clients it has never
+      seen), that advantage reverses entirely. Random Forest's higher capacity let it quietly
+      memorize client-specific patterns that a random split allowed to leak between training and
+      testing; Logistic Regression, being simpler, had far less capacity to do the same, which is
+      exactly why its score barely moved.
+    </p>
+
+    <h3 style="font-size:19px; margin-top:40px;">What the two models actually leaned on — and where they disagree</h3>
+    <p>
+      Only one signal was robustly confirmed by both methods: <span class="mono">ctr_prev30</span>
+      was Logistic Regression's single largest coefficient and Random Forest's third-highest
+      permutation importance. Past that, the two disagree — Random Forest ranked
+      <span class="mono">days_since_last_update</span> and <span class="mono">word_count</span> as
+      its top two signals, while Logistic Regression assigned both near-zero weight. That gap is
+      most likely explained by an honest limitation, not a real contradiction: the numeric
+      features were never scaled before fitting Logistic Regression, so its coefficient
+      magnitudes aren't fairly comparable across features of very different natural scale. This is
+      disclosed here rather than smoothed over, per Section 05.
+    </p>
+
+    <div class="callout teal">
+      <strong>What the errors looked like, concretely</strong>
+      False positives — flagged as declining but weren't — mostly shared one trait: zero clicks
+      despite being reasonably fresh (29–41 days since update). A CTR of exactly zero is enough to
+      trigger a flag even when staleness doesn't support it. False negatives — missed real
+      declines — mostly had a decent CTR (0.3–1.0%) and sat right around the 90-day threshold,
+      suggesting some real declines happen for reasons neither signal in this study captures.
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="eyebrow">05 — Limitations &amp; honest framing</div>
+    <h2>What this study can say, and what it deliberately won't.</h2>
+    <ul class="limits-list">
+      <li><span class="limit-title">The label is a proxy, not a proven outcome</span>Declining means impressions already dropped more than 20% in the most recent 30 days — a description of the current window, not a guaranteed future trajectory for any individual page.</li>
+      <li><span class="limit-title">Coverage stops at 21.4% of the portfolio</span>The 100-impression floor exists to keep CTR and position metrics trustworthy, but it means these findings say nothing reliable about the long tail of low-traffic pages.</li>
+      <li><span class="limit-title">Modest discriminative power</span>AUC-ROC of 0.55–0.60 sits closer to chance than to strong separation. This is a prioritization aid for a time-constrained reviewer, not a confident prediction.</li>
+      <li><span class="limit-title">Logistic Regression's feature ranking is scale-confounded</span>Unscaled numeric features mean its coefficient magnitudes are directional evidence at best — a fully fair comparison against Random Forest's importances would need a re-fit on standardized features.</li>
+      <li><span class="limit-title">Observational, not causal, throughout</span>Every relationship reported here is an association measured in this portfolio. None of it proves that updating a page, or its click-through rate, causes a change in performance.</li>
+      <li><span class="limit-title">A global time anchor, not a per-client one</span>All windows are anchored to one snapshot date across every client; clients whose data ends earlier are proportionally underrepresented.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="recs">
+  <div class="wrap-wide">
+    <div class="eyebrow">06 — Ranked recommendations</div>
+    <h2>The queue a reviewer actually gets, and what should never be automated.</h2>
+    <p>
+      The baseline's reason code drives the primary ranking — not the model — because it is the
+      most precise and the most explainable of the three approaches tested. The model's output is
+      used only as a secondary, within-group confidence signal.
+    </p>
+
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-head"><span class="action">Refresh, highest priority</span><span class="badge badge-double">STALE+WEAK_CTR</span></div>
+        <p>90+ days without an update and getting fewer clicks than similar pages at its position. Two independent warning signs — 8,930 pages.</p>
+      </div>
+      <div class="rec-card">
+        <div class="rec-head"><span class="action">Refresh</span><span class="badge badge-flag">STALE</span></div>
+        <p>90+ days without an update; click performance still looks normal for its position — 6,684 pages.</p>
+      </div>
+      <div class="rec-card">
+        <div class="rec-head"><span class="action">Monitor</span><span class="badge badge-flag">WEAK_CTR</span></div>
+        <p>Reasonably fresh, but fewer clicks than similar pages at its position — worth a snippet or intent-match check — 50,144 pages.</p>
+      </div>
+      <div class="rec-card">
+        <div class="rec-head"><span class="action">Leave</span><span class="badge badge-safe">NONE</span></div>
+        <p>No warning signs from either check — lowest priority, 45,489 pages.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:19px; margin-top:40px;">Never automate</h3>
+    <ul class="nogo-list">
+      <li>No auto-editing, auto-redirecting, or auto-unpublishing content based on this score alone.</li>
+      <li>No using this score as a judgment of a writer's or team's performance.</li>
+      <li>No applying this playbook to clients or pages outside the coverage confirmed in Section 02 — it was never validated on them.</li>
+      <li>No treating a flagged page as confirmed to be declining without a human check for context this model can't see — evergreen intent, inherently low-CTR traffic, or a recently deleted/unpublished page.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="repro">
+  <div class="wrap">
+    <div class="eyebrow">07 — Reproducibility</div>
+    <h2>Every number here traces back to a notebook that still runs.</h2>
+    <p>
+      All modeling uses <span class="mono">random_state=42</span> throughout. The full weekly
+      progression — from research question to this playbook — is committed in the repository
+      below, in order.
+    </p>
+    <div class="repro-links">
+      <a href="https://github.com/HassanNawaz14/FlyRank-ML-Internship">Repository</a>
+      <a href="https://github.com/HassanNawaz14/FlyRank-ML-Internship/tree/main/work/notebooks">work/notebooks/</a>
+      <a href="https://github.com/HassanNawaz14/FlyRank-ML-Internship/blob/main/work/outputs/playbook_metrics.json">playbook_metrics.json</a>
+    </div>
+  </div>
+</section>
+
+<footer id="credit">
+  <div class="wrap">
+    <div class="credit-line">
+      Built on the FlyRank ML Internship dataset — <a href="https://flyrank.ai">flyrank.ai</a>
+    </div>
+    <p>Hassan Nawaz · FlyRank ML Internship, Ranking Signal Analysis lane · 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>
